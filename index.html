@@ -287,7 +287,8 @@ function scoreComplex(d){
   const s=[0,0];
   d.cards.forEach((c,i)=>{
     if(c.e<0) return; const b=CARDS[i].base, e=c.e, o=1-e;
-    s[e]-=c.d?2*b:b; /* doubled: whoever eats it takes double, no matter who doubled */
+    if(c.d){ s[e]-=2*b; s[1-e]+=b; } /* doubled: eater −2x, the other team +x, so the hand still totals −500 */
+    else s[e]-=b;
   });
   if(d.tricks!=null){s[0]-=15*d.tricks; s[1]-=15*(13-d.tricks);}
   if(d.diamonds!=null){s[0]-=10*d.diamonds; s[1]-=10*(13-d.diamonds);}
@@ -404,12 +405,12 @@ function logHTML(){
 }
 function rulesHTML(){
   return `<details class="rules"><summary>جدول النقاط</summary><table><tbody>
-  <tr><td>الشايب</td><td><span class="num">−75</span> · مدبّل <span class="num">−150</span></td></tr>
-  <tr><td>البنت</td><td><span class="num">−25</span> · مدبّلة <span class="num">−50</span></td></tr>
+  <tr><td>الشايب</td><td><span class="num">−75</span> · مدبّل <span class="num">−150</span> و<span class="num">+75</span> للفريق الثاني</td></tr>
+  <tr><td>البنت</td><td><span class="num">−25</span> · مدبّلة <span class="num">−50</span> و<span class="num">+25</span> للفريق الثاني</td></tr>
   <tr><td>الأكلة</td><td><span class="num">−15</span></td></tr>
   <tr><td>الديمن</td><td><span class="num">−10</span></td></tr>
   <tr><td>التركس</td><td><span class="num">+200 · +150 · +100 · +50</span></td></tr>
-  </tbody></table><p>الورقة المدبّلة اللي ياكلها ينقص الضعف، بغض النظر مين دبّلها.</p></details>`;
+  </tbody></table><p>الورقة المدبّلة: اللي ياكلها ينقص الضعف، والفريق الثاني ياخذ الأصل، بغض النظر مين دبّلها. فالكومبلكس مجموعه دايماً −500، والتركس +500.</p></details>`;
 }
 function render(){
   const app=$('#app');
@@ -432,7 +433,7 @@ function complexHTML(){
     const st=d.cards[i];
     const w=c.r==='K'?'مدبّل':'مدبّلة';
     return `<div class="crow">
-      <div class="crow-top">${card(c)}<span class="cname"><b>${c.name}</b><small class="num">${st.d?'−'+2*c.base:'−'+c.base}</small></span><button class="dbl" data-act="dtoggle" data-i="${i}" aria-pressed="${!!st.d}">${st.d?w+' ✓':w+'؟'}</button></div>
+      <div class="crow-top">${card(c)}<span class="cname"><b>${c.name}</b><small class="num">${st.d?'−'+2*c.base+' · +'+c.base+' للخصم':'−'+c.base}</small></span><button class="dbl" data-act="dtoggle" data-i="${i}" aria-pressed="${!!st.d}">${st.d?w+' ✓':w+'؟'}</button></div>
       ${pick2('eat',st.e,`data-i="${i}"`)}</div>`;
   }).join('');
   const nums=(f,v)=>`<div class="nums" role="group">${Array.from({length:14},(_,n)=>`<button class="n" data-act="num" data-f="${f}" data-v="${n}" aria-pressed="${v===n}">${n}</button>`).join('')}</div>`;
